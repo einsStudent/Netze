@@ -1,30 +1,12 @@
-import java.net.DatagramPacket;
+package Ftw;
 
-public class Sender {
+import java.io.IOException;
 
-	private static final int PORT = 8042;
-	private static final int PACKET_SIZE = 1400;
-	private static final int HEADER_CHECKSUM = 8;
-	private static final int HEADER_LENGTH = 4;
-	private static final int HEADER_SIZE = 13;
-	private static final int DATA_SIZE = PACKET_SIZE - HEADER_SIZE;
-	
+public class Sender{
+
+
 	private State currentState;
 	private Transition[][] transition;
-	private byte[] data = new byte[DATA_SIZE];
-	private int dataSize = 0;
-	
-	private byte alternatingBit;
-	
-	enum State {
-		IDLE, SELECT, SEND, WAIT, RESEND, END
-	}
-
-	enum Msg {
-		TIMEOUT, BACK_TO_IDLE, SUCCESSFUL_SEND, SUCCESSFUL_SELECT, SUCCESSFUL_FINISHED,
-		SUCCESSFUL_RESENT, FAILED_ACK, SUCCESSFUL_CONNECT, SUCCESSFUL_ACK,
-
-	}
 
 	public Sender() {
 		
@@ -32,7 +14,6 @@ public class Sender {
 
 		transition = new Transition[State.values().length][Msg.values().length];
 		
-		//In IDLE u get select you start moveOnToSelect
 		transition[State.IDLE.ordinal()][Msg.SUCCESSFUL_CONNECT.ordinal()] = new moveOnToSelect();
 		
 		transition[State.SELECT.ordinal()][Msg.SUCCESSFUL_SELECT.ordinal()] = new moveOnToSend();		
@@ -47,54 +28,52 @@ public class Sender {
 		transition[State.END.ordinal()][Msg.BACK_TO_IDLE.ordinal()] = new moveOnToIdle();
 	}
 	
-	
-	private DatagramPacket makePacket(byte alternatingBit){
-		
-		byte[] alternatingBits = new byte[PACKET_SIZE - HEADER_CHECKSUM];
-		alternatingBits[0] = alternatingByte;
-		
-		return null;
+	public void processMsg(Msg input){
+		System.out.println("INFO Received "+input+" in state "+currentState);
+		Transition trans = transition[currentState.ordinal()][input.ordinal()];
+		if(trans != null){
+			currentState = trans.execute(input);
+		}
+		System.out.println("INFO State: "+currentState);
 	}
 	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
+
 
 	abstract class Transition {
 		abstract public State execute(Msg input);
 	}
-
+	
+	
+	//									THIS IS THE IDELE MODE
+	//
+	//				The idle mode builds up a DatagrammSocket and Connection
+	//
+	//
+	//	-	-	-	-	-	-	-	-	-	-	-	-	-	-	-	-	-	-	-	-	-	-	-	-	-//
 	class moveOnToSelect extends Transition {
 		@Override
-		public State execute(Msg input) {
+		public State execute(Msg input){
 			System.out.println("Successfully Connected to a Socket!");
 			System.out.println("Automatstatus: Switching from IDLE to SELECT");
-			return State.SEND;
+			return State.SELECT;
 		}
 	}
-	
-	
+	//-	-	-	-	-	-	-	-	-	-	-	-	-	-	-	-	-	-	-	-	-	-	-	-	-	-//	
+
 	class moveOnToSend extends Transition {
 		@Override
 		public State execute(Msg input) {
-			System.out.println("File selected!");
-			System.out.println("Automatstatus: Switching from Select to Send");
-			return State.SEND;
+			System.out.println("Automatstatus: Send");
+			try {
+				SendandReceiv.sendPacket(UDPSender.getSendData(), UDPSender.getPort());
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+			return State.WAIT;
 		}
 	}
-	
+
+
 	class moveOnToSendNext extends Transition {
 		@Override
 		public State execute(Msg input) {
