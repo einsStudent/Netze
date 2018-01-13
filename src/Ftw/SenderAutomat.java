@@ -1,30 +1,91 @@
 package Ftw;
 
-import java.io.IOException;
+import java.net.DatagramPacket;
+import java.net.DatagramSocket;
+import java.net.InetAddress;
+import java.util.zip.Adler32;
 
-public class Sender{
+public class SenderAutomat{
 
 
 	private State currentState;
 	private Transition[][] transition;
+	private InetAddress ip;
+	private DatagramSocket senderSocket;
+	
+	
+	private static final int ALTERNATING_BIT_SIZE = 1;
+	private static final int HEADER_LENGTH_SIZE = 4;
+	private static final int HEADER_CHECKSUM = 8;
+	private static final int ACK_SIZE = 1;
+	private static final int PACKET_SIZE = 1400;
+	private static final int HEADER_TOTAL_SIZE = ALTERNATING_BIT_SIZE + HEADER_LENGTH_SIZE + HEADER_CHECKSUM;
+	private static final int DATA_SIZE = PACKET_SIZE - HEADER_TOTAL_SIZE;
+	private static final int PORT = 6666;
+	private byte[] data = new byte[DATA_SIZE];
+	private int dataSize = 0;
+	
+	
+	
+	
+	//-	-	-	-	-	-	-	-	-	-	-	-	-	-	-	-	-	-	-	-	-	-	-	-	-	-//
 
-	public Sender() {
+									// Getter und Setter
+	//-	-	-	-	-	-	-	-	-	-	-	-	-	-	-	-	-	-	-	-	-	-	-	-	-	-//	
+	
+	public int getDataSize() {
+		return dataSize;
+	}
+
+	public void setDataSize(int dataSize) {
+		this.dataSize = dataSize;
+	}
+
+	public byte[] getData() {
+		return data;
+	}
+
+	public void setData(byte[] data) {
+		this.data = data;
+	}
+
+	public State getCurrentState() {
+		return currentState;
+	}
+
+	public void setCurrentState(State currentState) {
+		this.currentState = currentState;
+	}
+
+	public InetAddress getIp() {
+		return ip;
+	}
+
+	public void setIp(InetAddress ip) {
+		this.ip = ip;
+	}
+
+	public DatagramSocket getSenderSocket() {
+		return senderSocket;
+	}
+
+	public void setSenderSocket(DatagramSocket senderSocket) {
+		this.senderSocket = senderSocket;
+	}
+
+	public SenderAutomat(DatagramSocket senderSocket, InetAddress ip) {
+		this.ip = ip;
+		this.senderSocket = senderSocket;
 		
 		currentState = State.IDLE;
-
 		transition = new Transition[State.values().length][Msg.values().length];
-		
 		transition[State.IDLE.ordinal()][Msg.SUCCESSFUL_CONNECT.ordinal()] = new moveOnToSelect();
-		
 		transition[State.SELECT.ordinal()][Msg.SUCCESSFUL_SELECT.ordinal()] = new moveOnToSend();		
-		
 		transition[State.SEND.ordinal()][Msg.SUCCESSFUL_SEND.ordinal()] = new moveOnToWait();
-		
 		transition[State.WAIT.ordinal()][Msg.SUCCESSFUL_ACK.ordinal()] = new moveOnToSendNext();
 		transition[State.WAIT.ordinal()][Msg.FAILED_ACK.ordinal()] = new moveOnToReSend();
 		transition[State.WAIT.ordinal()][Msg.TIMEOUT.ordinal()] = new moveOnToReSend();
 		transition[State.WAIT.ordinal()][Msg.SUCCESSFUL_FINISHED.ordinal()] = new moveOnToEnd();
-		
 		transition[State.END.ordinal()][Msg.BACK_TO_IDLE.ordinal()] = new moveOnToIdle();
 	}
 	
@@ -34,21 +95,49 @@ public class Sender{
 		if(trans != null){
 			currentState = trans.execute(input);
 		}
-		System.out.println("INFO State: "+currentState);
+		System.out.println("INFO State: " + currentState);
 	}
 	
-
-
+	
+	private DatagramPacket makePacket(byte alternatingByte) {
+		
+		byte[] alternatingBit = new byte[ALTERNATING_BIT_SIZE];
+		alternatingBit[0] = alternatingByte;
+		
+		byte[] size = new byte[HEADER_LENGTH_SIZE];
+		size = BytesUmrechnen.IntegerToBytes(getDataSize());
+		
+		byte[] headerAndData = new byte[PACKET_SIZE - HEADER_CHECKSUM];
+		System.arraycopy(alternatingBit, 0, headerAndData, 0, alternatingBit.length);
+		System.arraycopy(size, 0, headerAndData, ALTERNATING_BIT_SIZE, size.length);
+		System.arraycopy(getData(), 0, headerAndData, ALTERNATING_BIT_SIZE + HEADER_LENGTH_SIZE, getData().length);
+		
+		Adler32 adler32 = new Adler32();
+		adler32.update(headerAndData);
+		
+		byte[] checksum = new byte[HEADER_CHECKSUM];
+		checksum = BytesUmrechnen.LongToBytes(adler32.getValue());
+		
+		byte[] packet = new byte[PACKET_SIZE];
+		System.arraycopy(checksum, 0, packet, 0, checksum.length);
+		System.arraycopy(headerAndData, 0, packet, HEADER_CHECKSUM, headerAndData.length);
+		
+		return new DatagramPacket(packet, packet.length ,getIp(), PORT);
+	}
+	
+	
+	
+	
+	
+	//(\_/)
+	//( •,•)
+	//(")_(")		-		-		-		-		-		-		-		-		-		-		-
+	
 	abstract class Transition {
 		abstract public State execute(Msg input);
 	}
 	
 	
-	//									THIS IS THE IDELE MODE
-	//
-	//				The idle mode builds up a DatagrammSocket and Connection
-	//
-	//
 	//	-	-	-	-	-	-	-	-	-	-	-	-	-	-	-	-	-	-	-	-	-	-	-	-	-//
 	class moveOnToSelect extends Transition {
 		@Override
@@ -64,11 +153,13 @@ public class Sender{
 		@Override
 		public State execute(Msg input) {
 			System.out.println("Automatstatus: Send");
-			try {
-				SendandReceiv.sendPacket(UDPSender.getSendData(), UDPSender.getPort());
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
+//			try {
+//				SendandReceiv.sendPacket(UDPSender.getSendData(), UDPSender.getPort());
+//			} catch (IOException e) {
+//				e.printStackTrace();
+//			}
+//			getSenderSocket().send();
+			
 			return State.WAIT;
 		}
 	}
@@ -115,6 +206,4 @@ public class Sender{
 			return State.IDLE;
 		}
 	}
-
-
 }

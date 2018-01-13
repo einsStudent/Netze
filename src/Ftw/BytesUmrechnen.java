@@ -8,8 +8,6 @@ public class BytesUmrechnen {
 	static int BytesToInteger;
 	static long BytesToLong;
 	static String string;
-	
-	UDPSender.getSendData("");
 
 	public static byte[] StringToBytes(String string) {
 		return stringTobytes = string.getBytes();

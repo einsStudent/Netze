@@ -11,6 +11,8 @@ import java.net.SocketException;
 import java.net.UnknownHostException;
 
 public class UDPSender {
+	
+	private static final int TIMEOUT = 100;
 	static byte[] sendData = new byte[1400];
 	byte[] receiveData = new byte[1400];
 	public InetAddress IPAddress = InetAddress.getByName("");
@@ -20,6 +22,7 @@ public class UDPSender {
 	public int sequNummer = 0;
 	public int ack;
 	static int port = 6666;
+
 
 	public UDPSender(String datapath, String host) throws IOException {
 		IPAddress = InetAddress.getByName(host);
@@ -49,6 +52,8 @@ public class UDPSender {
 			for (int i = 0; i < dateiName.length(); i++) {
 				sendData[i + 12] = BytesUmrechnen.StringToBytes(dateiName)[i];
 			}
+			
+			
 			SendandReceiv.sendPacket(sendData, port);
 			//
 			byte[] filedata = new byte[in.available()];
@@ -61,24 +66,7 @@ public class UDPSender {
 			int t = 0;
 			int counter = 0;
 			
-			///////////////////////////////////////////////////////////////////////////
-			Sender sender = new Sender();
-			sender.processMsg(Msg.SUCCESSFUL_ACK);
-			///////////////////////////////////////////////////////////////////////////
-			boolean Data = true;
-			
-			
-			while(Data){
-				sender.processMsg(Msg.SUCCESSFUL_ACK);
 
-			}
-			
-			
-			//////////////////////////////////////////////////////////////////////////
-			
-			
-			
-			/////////////////////////////////////////////////////////////////////////
 			while (counter < sendzahl) {
 
 				for (int i = 0; i < sendData.length; i++) {
@@ -127,6 +115,12 @@ public class UDPSender {
 		UDPSender sender = new UDPSender("C:\\Users\\alex\\Documents\\xxx\\Uebung7\\Uebung7\\bouma.png", "localhost");
 		System.out.println(file);
 		sender.run();
+		
+		InetAddress ip = InetAddress.getByName(args[0]);
+		DatagramSocket senderSocket = new DatagramSocket();
+		senderSocket.setSoTimeout(TIMEOUT);
+		SenderAutomat senderAutomat = new SenderAutomat(senderSocket, ip);
+		senderAutomat.processMsg(Msg.SUCCESSFUL_SEND);
 	}
 
 }
