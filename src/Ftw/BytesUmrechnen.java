@@ -20,6 +20,7 @@ public class BytesUmrechnen {
 		return ByteBuffer.allocate(4).putInt(integer).array();
 	}
 
+
 	public static int BytesToInteger(byte[] bytes) {
 		ByteBuffer.allocate(4);
 		return ByteBuffer.wrap(bytes).getInt();

@@ -1,16 +1,3 @@
-/MainSender.class
-/Sender$Msg.class
-/Sender$State.class
-/Sender$Transition.class
-/Sender$moveOnToEnd.class
-/Sender$moveOnToIdle.class
-/Sender$moveOnToReSend.class
-/Sender$moveOnToSelect.class
-/Sender$moveOnToSend.class
-/Sender$moveOnToSendNext.class
-/Sender$moveOnToWait.class
-/Sender.class
+/Ftw/
 /tester/
-/BytesUmrechnen.class
-/SendandReceive.class
 /wtf/
