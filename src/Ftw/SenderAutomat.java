@@ -313,8 +313,5 @@ public class SenderAutomat{
 			return State.WAIT;
 		}
 	}
-	
-	
-	
-	
+
 }
