@@ -15,20 +15,16 @@ public class SenderAutomat{
 	
 	
 	private static final int ALTERNATING_BIT_SIZE = 1;
+	private static final int ACK_SIZE = 1;
 	private static final int HEADER_LENGTH_SIZE = 4;
 	private static final int HEADER_CHECKSUM = 8;
-	private static final int ACK_SIZE = 1;
 	private static final int PACKET_SIZE = 1400;
 	private static final int HEADER_TOTAL_SIZE = ALTERNATING_BIT_SIZE + HEADER_LENGTH_SIZE + HEADER_CHECKSUM;
-	private static final int DATA_SIZE = PACKET_SIZE - HEADER_TOTAL_SIZE;
+	public static final int DATA_SIZE = PACKET_SIZE - HEADER_TOTAL_SIZE;
 	private static final int PORT = 6666;
 	private byte[] data = new byte[DATA_SIZE];
 	private int dataSize = 0;
-	
-	
-	
-	
-	//-	-	-	-	-	-	-	-	-	-	-	-	-	-	-	-	-	-	-	-	-	-	-	-	-	-//
+
 
 									// Getter und Setter
 	//-	-	-	-	-	-	-	-	-	-	-	-	-	-	-	-	-	-	-	-	-	-	-	-	-	-//	
@@ -153,11 +149,6 @@ public class SenderAutomat{
 		@Override
 		public State execute(Msg input) {
 			System.out.println("Automatstatus: Send");
-//			try {
-//				SendandReceiv.sendPacket(UDPSender.getSendData(), UDPSender.getPort());
-//			} catch (IOException e) {
-//				e.printStackTrace();
-//			}
 //			getSenderSocket().send();
 			
 			return State.WAIT;

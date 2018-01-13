@@ -22,6 +22,7 @@ public class UDPSender {
 	public int sequNummer = 0;
 	public int ack;
 	static int port = 6666;
+	byte[] allDataPacketsBytes;
 
 
 	public UDPSender(String datapath, String host) throws IOException {
@@ -30,97 +31,119 @@ public class UDPSender {
 
 	}
 
-	@SuppressWarnings("resource")
 	public void run() throws IOException, InterruptedException {
 
-		dateiName = file.getName();
-		dateiNameGroesse = dateiName.length();
-		System.out.println(dateiNameGroesse);
-
-		try {
-			InputStream in = new FileInputStream(file);
-			sendData = new byte[BytesUmrechnen.IntegerToBytes(sequNummer).length
-					+ BytesUmrechnen.IntegerToBytes(dateiNameGroesse).length
-					+ BytesUmrechnen.StringToBytes(dateiName).length
-					+ BytesUmrechnen.IntegerToBytes(in.available()).length];
-			System.out.println(in.available());
-			for (int i = 0; i < 4; i++) {
-				sendData[i] = BytesUmrechnen.IntegerToBytes(sequNummer)[i];
-				sendData[i + 4] = BytesUmrechnen.IntegerToBytes(dateiNameGroesse)[i];
-				sendData[i + 8] = BytesUmrechnen.IntegerToBytes(in.available())[i];
-			}
-			for (int i = 0; i < dateiName.length(); i++) {
-				sendData[i + 12] = BytesUmrechnen.StringToBytes(dateiName)[i];
-			}
-			
-			
-			SendandReceiv.sendPacket(sendData, port);
-			//
-			byte[] filedata = new byte[in.available()];
-
-			in.read(filedata);
-			// in.close();
-
-			int sendzahl = filedata.length / 1400;
-			sendData = new byte[1400];
-			int t = 0;
-			int counter = 0;
-			
-
-			while (counter < sendzahl) {
-
-				for (int i = 0; i < sendData.length; i++) {
-
-					sendData[i] = filedata[i + t];
-				}
-				Thread.sleep(100);
-				SendandReceiv.sendPacket(sendData, port);
-				t = t + 1400;
-				counter++;
-
-				// clientSocket.send(sendPacket);
-
-				System.out.println("counter sender " + counter + " " + sendData.length + " " + t);
-			}
-			//////////////////////////////////////////////////////////////////////////
-
-			byte[] lastData = new byte[filedata.length - t];
-			System.out.println(lastData.length);
-			for (int i = 0; i < lastData.length; i++) {
-				lastData[i] = filedata[i + t];
-			}
-			Thread.sleep(100);
-			SendandReceiv.sendPacket(lastData, port);
-
-			System.out.println("counter sender " + "" + (counter + 1) + "  " + lastData.length);
-
-		} catch (SocketException e) {
-			e.printStackTrace();
-		} catch (UnknownHostException e) {
-			e.printStackTrace();
-		}
-
-	}
-
-	public static byte[] getSendData() {
-		return sendData;
-	}
-
-	public static int getPort() {
-		return port;
+//		dateiName = file.getName();
+//		dateiNameGroesse = dateiName.length();
+//		System.out.println(dateiNameGroesse);
+//
+//		try {
+//			InputStream in = new FileInputStream(file);
+//			sendData = new byte[BytesUmrechnen.IntegerToBytes(sequNummer).length
+//					+ BytesUmrechnen.IntegerToBytes(dateiNameGroesse).length
+//					+ BytesUmrechnen.StringToBytes(dateiName).length
+//					+ BytesUmrechnen.IntegerToBytes(in.available()).length];
+//			System.out.println(in.available());
+//			for (int i = 0; i < 4; i++) {
+//				sendData[i] = BytesUmrechnen.IntegerToBytes(sequNummer)[i];
+//				sendData[i + 4] = BytesUmrechnen.IntegerToBytes(dateiNameGroesse)[i];
+//				sendData[i + 8] = BytesUmrechnen.IntegerToBytes(in.available())[i];
+//			}
+//			for (int i = 0; i < dateiName.length(); i++) {
+//				sendData[i + 12] = BytesUmrechnen.StringToBytes(dateiName)[i];
+//			}
+//			
+//			
+//			SendandReceiv.sendPacket(sendData, port);
+//			//
+//			byte[] filedata = new byte[in.available()];
+//
+//			in.read(filedata);
+//			// in.close();
+//
+//			int sendzahl = filedata.length / 1400;
+//			sendData = new byte[1400];
+//			int t = 0;
+//			int counter = 0;
+//			
+//
+//			while (counter < sendzahl) {
+//
+//				for (int i = 0; i < sendData.length; i++) {
+//
+//					sendData[i] = filedata[i + t];
+//				}
+//				Thread.sleep(100);
+//				SendandReceiv.sendPacket(sendData, port);
+//				t = t + 1400;
+//				counter++;
+//
+//				// clientSocket.send(sendPacket);
+//
+//				System.out.println("counter sender " + counter + " " + sendData.length + " " + t);
+//			}
+//			//////////////////////////////////////////////////////////////////////////
+//
+//			byte[] lastData = new byte[filedata.length - t];
+//			System.out.println(lastData.length);
+//			for (int i = 0; i < lastData.length; i++) {
+//				lastData[i] = filedata[i + t];
+//			}
+//			Thread.sleep(100);
+//			SendandReceiv.sendPacket(lastData, port);
+//
+//			System.out.println("counter sender " + "" + (counter + 1) + "  " + lastData.length);
+//
+//		} catch (SocketException e) {
+//			e.printStackTrace();
+//		} catch (UnknownHostException e) {
+//			e.printStackTrace();
+//		}
+//
+//	}
+//
+//	public static byte[] getSendData() {
+//		return sendData;
+//	}
+//
+//	public static int getPort() {
+//		return port;
 	}
 
 	public static void main(String args[]) throws Exception {
-
-		UDPSender sender = new UDPSender("C:\\Users\\alex\\Documents\\xxx\\Uebung7\\Uebung7\\bouma.png", "localhost");
-		System.out.println(file);
-		sender.run();
-		
+		System.out.println("Enter ip");
 		InetAddress ip = InetAddress.getByName(args[0]);
 		DatagramSocket senderSocket = new DatagramSocket();
 		senderSocket.setSoTimeout(TIMEOUT);
 		SenderAutomat senderAutomat = new SenderAutomat(senderSocket, ip);
+		System.out.println("Enter file Path");
+		File f = new File(args[1]);
+		String fileName = f.getName();
+		byte[] fileNameBytes = BytesUmrechnen.StringToBytes(fileName);
+		
+		byte[] allData = new byte[(int) file.length()];
+		FileInputStream fileInputStream = new FileInputStream(file);
+        fileInputStream.read(allData);
+        fileInputStream.close();
+        
+        
+        // calculating the number of packets that has to be sent (and the size of the last packet)
+		int allDataSize = allData.length;
+		int fullDataPackets = allDataSize / SenderAutomat.DATA_SIZE;
+		int lastPacketSize = allDataSize % SenderAutomat.DATA_SIZE;
+		int allDataPackets = fullDataPackets;
+		if(lastPacketSize != 0) {
+			allDataPackets = fullDataPackets + 1;
+		}
+		
+		// byte array with data for the number of packets that has to be sent
+		byte[] allDataPacketsBytes = BytesUmrechnen.IntegerToBytes(allDataPackets);
+		
+		
 		senderAutomat.processMsg(Msg.SUCCESSFUL_SEND);
+		
+		
+		
 	}
 
 }

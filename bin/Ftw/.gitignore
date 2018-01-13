@@ -21,3 +21,5 @@
 /SenderAutomat$moveOnToSendNext.class
 /SenderAutomat$moveOnToWait.class
 /SenderAutomat.class
+/Reciever.class
+/RecieverAutomat.class
