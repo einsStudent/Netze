@@ -27,13 +27,18 @@ public class UDPSender {
 		file = new File(datapath);
 
 	}
+	
+	public static byte[] getData(int i) {
+        	byte[] tmp = new byte[SenderAutomat.DATA_SIZE];
+        	System.arraycopy(allData, i * SenderAutomat.DATA_SIZE, tmp, 0, SenderAutomat.DATA_SIZE);
+		return tmp;
+	}
 
 	public static void main(String args[]) throws Exception {
 		System.out.println("Enter ip");
 		InetAddress ip = InetAddress.getByName("localhost");
 		DatagramSocket senderSocket = new DatagramSocket();
 		senderSocket.setSoTimeout(TIMEOUT);
-		SenderAutomat senderAutomat = new SenderAutomat(senderSocket, ip);
 		System.out.println("Enter file Path");
 		File f = new File("C:\\Users\\Redd\\Downloads\\Komisch.png");
 		String fileName = f.getName();
@@ -54,6 +59,8 @@ public class UDPSender {
 			allDataPackets = fullDataPackets + 1;
 		}
 
+		SenderAutomat senderAutomat = new SenderAutomat(senderSocket, ip, allDataPackets);
+		
 		// byte array with data for the number of packets that has to be sent
 		byte[] allDataPacketsBytes = BytesUmrechnen.IntegerToBytes(allDataPackets);
 
