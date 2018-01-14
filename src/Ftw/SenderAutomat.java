@@ -28,6 +28,7 @@ public class SenderAutomat{
 	static final int PORT = 6666;
 	private byte[] data = new byte[DATA_SIZE];
 	private int dataSize = 0;
+	private int i = 0;
 	private DatagramPacket recievedPacket;
 	private DatagramPacket lastPacket;
 	private DatagramPacket nextPacket;
@@ -194,7 +195,7 @@ public class SenderAutomat{
 		byte[] headerAndData = new byte[PACKET_SIZE - HEADER_CHECKSUM];
 		System.arraycopy(alternatingBit, 0, headerAndData, 0, alternatingBit.length);
 		System.arraycopy(size, 0, headerAndData, ALTERNATING_BIT_SIZE, size.length);
-		System.arraycopy(getData(), 0, headerAndData, ALTERNATING_BIT_SIZE + HEADER_LENGTH_SIZE, getData().length);
+		System.arraycopy(UDPSender.getData(i), 0, headerAndData, ALTERNATING_BIT_SIZE + HEADER_LENGTH_SIZE, getData().length);
 		
 		Adler32 adler32 = new Adler32();
 		adler32.update(headerAndData);
@@ -205,14 +206,14 @@ public class SenderAutomat{
 		byte[] packet = new byte[PACKET_SIZE];
 		System.arraycopy(checksum, 0, packet, 0, checksum.length);
 		System.arraycopy(headerAndData, 0, packet, HEADER_CHECKSUM, headerAndData.length);
-		
+		i++;
 		return new DatagramPacket(packet, packet.length ,getIp(), PORT);
 	}
 	
 
 	
 	//(\_/)
-	//( •,•)
+	//( â€¢,â€¢)
 	//(")_(")		-		-		-		-		-		-		-		-		-		-		-	-//
 	
 	abstract class Transition {
