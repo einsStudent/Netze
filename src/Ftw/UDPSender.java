@@ -21,7 +21,8 @@ public class UDPSender {
 	public int ack;
 	static int port = 6666;
 	byte[] allDataPacketsBytes;
-
+	static byte[] allData;
+	
 	public UDPSender(String datapath, String host) throws IOException {
 		IPAddress = InetAddress.getByName(host);
 		file = new File(datapath);
@@ -44,7 +45,7 @@ public class UDPSender {
 		String fileName = f.getName();
 		byte[] fileNameBytes = BytesUmrechnen.StringToBytes(fileName);
 
-		byte[] allData = new byte[(int) file.length()];
+		allData = new byte[(int) file.length()];
 		FileInputStream fileInputStream = new FileInputStream(file);
 		fileInputStream.read(allData);
 		fileInputStream.close();
